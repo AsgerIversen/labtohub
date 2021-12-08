@@ -13,7 +13,8 @@ namespace LabToHub
 
         // Get this using:
         //   var id = await github.Repository.Get("Keysight", "opentap").Id;  // keysight/opentap id = 436397521
-        public const long HUB_REPO_ID = 436397521;
+        public const long GITHUB_REPO_ID = 436397521;
+        public const long GITLAB_REPO_ID = 10858059;
 
         public static Dictionary<string, string> LABEL_MAP = new Dictionary<string, string>
         {

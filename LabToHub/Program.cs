@@ -5,17 +5,17 @@ using LabToHub;
 
 // Get all issues from gitlab project
 var gitlab = new GitLabClient("https://gitlab.com", Config.GITLAB_ACCESS_TOKEN);
-var labIssues = await gitlab.Issues.GetAllAsync(10858059);
+var labIssues = await gitlab.Issues.GetAllAsync(Config.GITLAB_REPO_ID);
 labIssues = labIssues.OrderBy(x => x.Iid).ToList(); // add issue to github in the same order as they were added in gitlab
 
 var github = new GitHubClient(new ProductHeaderValue("LabToHub"));
 github.Credentials = new Credentials(Config.GITHUB_ACCESS_TOKEN);
 //var repo = await github.Repository.Get("Keysight", "opentap");  // id = 436397521
 
-var hubIssues = await github.Issue.GetAllForRepository(Config.HUB_REPO_ID, new RepositoryIssueRequest());
+var hubIssues = await github.Issue.GetAllForRepository(Config.GITHUB_REPO_ID, new RepositoryIssueRequest());
 
 
-var hubMilestones = await github.Issue.Milestone.GetAllForRepository(Config.HUB_REPO_ID);
+var hubMilestones = await github.Issue.Milestone.GetAllForRepository(Config.GITHUB_REPO_ID);
 Dictionary<string,int> hubMilestoneId = hubMilestones.ToDictionary(m => m.Title, m => m.Number);
 
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
@@ -32,7 +32,7 @@ foreach (var li in labIssues)
         {
             var update = new IssueUpdate();
             update.Body = migratedDescription;
-            await github.Issue.Update(Config.HUB_REPO_ID, hi.Number,update);
+            await github.Issue.Update(Config.GITHUB_REPO_ID, hi.Number,update);
             Console.WriteLine($"Updated issue decription for  {hi.Title}");
         }
         continue;
@@ -51,7 +51,7 @@ foreach (var li in labIssues)
             if(li.Milestone.DueDate is not null)
                 newm.DueOn = DateTimeOffset.Parse(li.Milestone.DueDate);
             newm.State = li.Milestone.State == GitLabApiClient.Models.Milestones.Responses.MilestoneState.Closed ? ItemState.Closed : ItemState.Open;
-            var createdM = await github.Issue.Milestone.Create(Config.HUB_REPO_ID, newm);
+            var createdM = await github.Issue.Milestone.Create(Config.GITHUB_REPO_ID, newm);
             Console.WriteLine($"Created milestone {createdM.Title}");
             hubMilestoneId.Add(li.Milestone.Title, createdM.Number);
         }
@@ -59,6 +59,6 @@ foreach (var li in labIssues)
     }
 
 
-    var createdI = await github.Issue.Create(Config.HUB_REPO_ID, newi);
+    var createdI = await github.Issue.Create(Config.GITHUB_REPO_ID, newi);
     Console.WriteLine($"Created issue {createdI.Title}");
 }
