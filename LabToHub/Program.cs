@@ -42,11 +42,15 @@ foreach (var li in labIssues)
     if (hi is not null)
     {
         // update issue already found
-        if (hi.Body != migratedDescription || hi.Title != li.Title)
+        if (hi.Body != migratedDescription || 
+            hi.Title != li.Title
+            // || (hi.State == ItemState.Open) != (li.State == GitLabApiClient.Models.Issues.Responses.IssueState.Opened)
+            )
         {
             var update = new IssueUpdate();
             update.Body = migratedDescription;
             update.Title = li.Title;
+            //update.State = li.State == GitLabApiClient.Models.Issues.Responses.IssueState.Opened ? ItemState.Open : ItemState.Closed;
             await github.Issue.Update(Config.GITHUB_REPO_ID, hi.Number, update);
 
             Console.WriteLine($"Updated issue '{hi.Title}'");
@@ -173,6 +177,9 @@ string TransformMarkdown(string markdown)
         else
             return $"[#{iid}]({labIssueBaseUrl}/{iid})";
         });
+
+    // fix image links:
+    result = result.Replace("](/uploads", $"]({Config.GITLAB_REPO_URL}/uploads");
 
     return result;
 }
