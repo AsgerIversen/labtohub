@@ -15,7 +15,7 @@ var github = new GitHubClient(new ProductHeaderValue("LabToHub"));
 github.Credentials = new Credentials(Config.GITHUB_ACCESS_TOKEN);
 //var repo = await github.Repository.Get("Keysight", "opentap");  // id = 436397521
 
-var hubIssues = await github.Issue.GetAllForRepository(Config.GITHUB_REPO_ID, new RepositoryIssueRequest());
+var hubIssues = await github.Issue.GetAllForRepository(Config.GITHUB_REPO_ID, new RepositoryIssueRequest{ State = ItemStateFilter.All });
 
 
 var hubMilestones = await github.Issue.Milestone.GetAllForRepository(Config.GITHUB_REPO_ID);
@@ -101,7 +101,7 @@ foreach (var li in labIssues)
 var labmrs = await gitlab.MergeRequests.GetAsync(Config.GITLAB_REPO_ID);
 labmrs = labmrs.OrderBy(x => x.Iid).ToList(); // add issue to github in the same order as they were added in gitlab
 
-var hubprs = await github.PullRequest.GetAllForRepository(Config.GITHUB_REPO_ID);
+var hubprs = await github.PullRequest.GetAllForRepository(Config.GITHUB_REPO_ID, new PullRequestRequest { State = ItemStateFilter.All });
 
 //var prj = await gitlab.Projects.GetAsync(Config.GITLAB_REPO_ID);
 //var labRepoUrl = prj.HttpUrlToRepo;
