@@ -8,8 +8,8 @@ namespace LabToHub
 {
     static class Config
     {
-        public const string GITLAB_ACCESS_TOKEN = "";
-        public const string GITHUB_ACCESS_TOKEN = "";
+        public const string GITLAB_ACCESS_TOKEN = "glpat-jVLNNxzR9yZsdv1KUs5i";
+        public const string GITHUB_ACCESS_TOKEN = "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";
 
         // Get this using:
         //   var id = await github.Repository.Get("Keysight", "opentap").Id;  // keysight/opentap id = 436397521

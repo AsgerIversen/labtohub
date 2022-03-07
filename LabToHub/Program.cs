@@ -55,6 +55,21 @@ foreach (var li in labIssues)
 
             Console.WriteLine($"Updated issue '{hi.Title}'");
         }
+
+        if (!li.Labels.Contains("MigratedToGitHub"))
+        {
+            var newComment = new GitLabApiClient.Models.Notes.Requests.CreateIssueNoteRequest($"This issue has moved to Github [here]({hi.HtmlUrl}).");
+            await gitlab.Issues.CreateNoteAsync(li.ProjectId, li.Iid, newComment);
+
+            var liUpdate = new GitLabApiClient.Models.Issues.Requests.UpdateIssueRequest
+            {
+                //State = GitLabApiClient.Models.Issues.Requests.UpdatedIssueState.Close
+                Labels = li.Labels.Concat(new[] { "MigratedToGitHub" }).ToList()
+            };
+            await gitlab.Issues.UpdateAsync(li.ProjectId, li.Iid, liUpdate);
+            Console.WriteLine($"Added migrated label to #{li.Iid} ({hi.Title}).");
+        }
+
         continue;
     }
 
