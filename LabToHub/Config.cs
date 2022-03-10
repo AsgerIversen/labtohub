@@ -29,6 +29,9 @@ namespace LabToHub
             { "asger", "AsgerIversen" },
             { "romadsen-ks", "rmadsen-ks" },
             { "StefanHolst", "StefanHolst" },
-        };
+            { "alexnlarsen", "alnlarsen" },
+            { "enesozturk", "enes-ozturk" },
+            { "sebastian.vlaic", "sebastian-pop" }
+        };  
     }
 }
