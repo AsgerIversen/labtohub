@@ -13,12 +13,12 @@ labIssues = labIssues.OrderBy(x => x.Iid).ToList(); // add issue to github in th
 
 var github = new GitHubClient(new ProductHeaderValue("LabToHub"));
 github.Credentials = new Credentials(Config.GITHUB_ACCESS_TOKEN);
-//var repo = await github.Repository.Get("opentap", "repository");  // id = 436397521
+var hubRepo = await github.Repository.Get(Config.GITHUB_REPO_OWNER, Config.GITHUB_REPO_NAME);  // id = 436397521
 
-var hubIssues = await github.Issue.GetAllForRepository(Config.GITHUB_REPO_ID, new RepositoryIssueRequest{ State = ItemStateFilter.All });
+var hubIssues = await github.Issue.GetAllForRepository(hubRepo.Id, new RepositoryIssueRequest{ State = ItemStateFilter.All });
 
 
-var hubMilestones = await github.Issue.Milestone.GetAllForRepository(Config.GITHUB_REPO_ID);
+var hubMilestones = await github.Issue.Milestone.GetAllForRepository(hubRepo.Id);
 Dictionary<string,int> hubMilestoneId = hubMilestones.ToDictionary(m => m.Title, m => m.Number);
 
 Dictionary<int, int> issueIdMap = new Dictionary<int, int>();
@@ -51,7 +51,7 @@ foreach (var li in labIssues)
             update.Body = migratedDescription;
             update.Title = li.Title;
             //update.State = li.State == GitLabApiClient.Models.Issues.Responses.IssueState.Opened ? ItemState.Open : ItemState.Closed;
-            await github.Issue.Update(Config.GITHUB_REPO_ID, hi.Number, update);
+            await github.Issue.Update(hubRepo.Id, hi.Number, update);
 
             Console.WriteLine($"Updated issue '{hi.Title}'");
         }
@@ -86,7 +86,7 @@ foreach (var li in labIssues)
                 if (li.Milestone.DueDate is not null)
                     newm.DueOn = DateTimeOffset.Parse(li.Milestone.DueDate);
                 newm.State = li.Milestone.State == GitLabApiClient.Models.Milestones.Responses.MilestoneState.Closed ? ItemState.Closed : ItemState.Open;
-                var createdM = await github.Issue.Milestone.Create(Config.GITHUB_REPO_ID, newm);
+                var createdM = await github.Issue.Milestone.Create(hubRepo.Id, newm);
                 Console.WriteLine($"Created milestone {createdM.Title}");
                 hubMilestoneId.Add(li.Milestone.Title, createdM.Number);
             }
@@ -94,7 +94,7 @@ foreach (var li in labIssues)
         }
 
 
-        hi = await github.Issue.Create(Config.GITHUB_REPO_ID, newi);
+        hi = await github.Issue.Create(hubRepo.Id, newi);
         Console.WriteLine($"Created issue '{hi.Title}'");
         issueIdMap.Add(li.Iid, hi.Number);
         Thread.Sleep(1000); // wait one second between create requests as per GitHub API docs here: https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
@@ -121,7 +121,7 @@ foreach (var li in labIssues)
 var labmrs = await gitlab.MergeRequests.GetAsync(Config.GITLAB_REPO_ID);
 labmrs = labmrs.OrderBy(x => x.Iid).ToList(); // add issue to github in the same order as they were added in gitlab
 
-var hubprs = await github.PullRequest.GetAllForRepository(Config.GITHUB_REPO_ID, new PullRequestRequest { State = ItemStateFilter.All });
+var hubprs = await github.PullRequest.GetAllForRepository(hubRepo.Id, new PullRequestRequest { State = ItemStateFilter.All });
 
 //var prj = await gitlab.Projects.GetAsync(Config.GITLAB_REPO_ID);
 //var labRepoUrl = prj.HttpUrlToRepo;
@@ -137,7 +137,7 @@ foreach (var mr in labmrs)
     }
 
     string target = mr.TargetBranch;
-    if (target == "master") target = "main";
+    if (target == Config.GITLAB_MAIN_BRANCH_NAME) target = "main";
     var pr = new NewPullRequest(mr.Title, mr.SourceBranch, target);
     string migrationHeader = $"Originally filed {mr.CreatedAt.ToString("MMMM dd yyyy")} by {mr.Author.Name} on [GitLab]({mr.WebUrl})" + Environment.NewLine + Environment.NewLine;
     pr.Body = migrationHeader + TransformMarkdown(mr.Description);
@@ -152,7 +152,7 @@ foreach (var mr in labmrs)
             var update = new PullRequestUpdate();
             update.Body = pr.Body;
             update.Title = pr.Title;
-            await github.PullRequest.Update(Config.GITHUB_REPO_ID, existing.Number, update);
+            await github.PullRequest.Update(hubRepo.Id, existing.Number, update);
 
             Console.WriteLine($"Updated pull request '{mr.Title}'");
         }
@@ -161,13 +161,13 @@ foreach (var mr in labmrs)
 
     // Checkout the branch from gitlab and push it to github
     // (hack that assumes a bunch of things about an already clone tree in git\opentap)
-    Directory.SetCurrentDirectory(@"C:\git\PackageRepositoryServer");
+    Directory.SetCurrentDirectory(Config.LOCAL_CLONE_PATH);
     System.Diagnostics.Process.Start("git", $"checkout {mr.SourceBranch}").WaitForExit(10000);
     System.Diagnostics.Process.Start("git", $"push origin").WaitForExit(10000);
-    Thread.Sleep(500);
+    Thread.Sleep(2000);
 
     // Create the pull request
-    var createdPr = await github.PullRequest.Create(Config.GITHUB_REPO_ID, pr);
+    var createdPr = await github.PullRequest.Create(hubRepo.Id, pr);
     Console.WriteLine($"Created pull request '{mr.Title}'");
 }
 
