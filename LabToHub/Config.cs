@@ -11,9 +11,8 @@ namespace LabToHub
         ///////////////////////////////////////////////////
         // GitLab project to migrate from:
         ///////////////////////////////////////////////////
-        public const string GITLAB_ACCESS_TOKEN = "";
-        public const int    GITLAB_REPO_ID = 491;
-        public const string GITLAB_REPO_URL = "http://gitlab.it...";  // no trailing slash
+        public const string GITLAB_REPO_NAME = "Campaign Plugin";
+        public const string GITLAB_ACCESS_TOKEN = "ZrSa5ksxWq1AUcx2KTGc";
         // name of the main branch in gitlab.
         // When this name appears as a target for a MR, the target will be switched to "main"
         public const string GITLAB_MAIN_BRANCH_NAME = "integration";
@@ -21,9 +20,9 @@ namespace LabToHub
         ///////////////////////////////////////////////////
         // GitHub repository to migrate to:
         ///////////////////////////////////////////////////
-        public const string GITHUB_ACCESS_TOKEN = "";
+        public const string GITHUB_ACCESS_TOKEN = "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";
         public const string GITHUB_REPO_OWNER = "opentap"; // this is either your user name or the name of the organization that the repo is in
-        public const string GITHUB_REPO_NAME = "repository";
+        public const string GITHUB_REPO_NAME = "campaign-plugin";
 
 
         ///////////////////////////////////////////////////
