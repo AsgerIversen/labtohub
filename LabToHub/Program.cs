@@ -6,6 +6,12 @@ using System.Text.RegularExpressions;
 
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
+if (!Config.Verify())
+{
+    Console.WriteLine($"Please fix your config file and try again.");
+    return;
+}
+
 // Get all issues from gitlab project
 string GITLAB_REPO_URL = null;
 int GITLAB_REPO_ID = 0;
@@ -20,6 +26,7 @@ foreach (var project in projects)
         break;
     }
 }
+
 
 if (GITLAB_REPO_URL == null)
 {
@@ -199,9 +206,10 @@ while (!completed)
 
         completed = true;
     }
-    catch (Exception ex)
+    catch (ForbiddenException forbiddenException)
     {
-        Console.WriteLine($"Rate limit hit. Cooling off for 10 seconds.");
+        Console.WriteLine(forbiddenException.Message);
+        Console.WriteLine($"Cooling off for 10 seconds.");
         Thread.Sleep(TimeSpan.FromSeconds(10));
     }
 }
