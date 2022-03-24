@@ -60,7 +60,7 @@ while (!completed)
             var hi = hubIssues.FirstOrDefault(i => i.Body is not null && i.Body.Contains("[GitLab](" + li.WebUrl + ")"));
             if (hi is not null)
             {
-                issueIdMap.Add(li.Iid, hi.Number);
+                issueIdMap.TryAdd(li.Iid, hi.Number);
             }
         }
 
@@ -119,7 +119,7 @@ while (!completed)
                         newm.State = li.Milestone.State == GitLabApiClient.Models.Milestones.Responses.MilestoneState.Closed ? ItemState.Closed : ItemState.Open;
                         var createdM = await github.Issue.Milestone.Create(hubRepo.Id, newm);
                         Console.WriteLine($"Created milestone {createdM.Title}");
-                        hubMilestoneId.Add(li.Milestone.Title, createdM.Number);
+                        hubMilestoneId.TryAdd(li.Milestone.Title, createdM.Number);
                     }
 
                     newi.Milestone = hubMilestoneId[li.Milestone.Title];
@@ -128,7 +128,7 @@ while (!completed)
 
                 hi = await github.Issue.Create(hubRepo.Id, newi);
                 Console.WriteLine($"Created issue '{hi.Title}'");
-                issueIdMap.Add(li.Iid, hi.Number);
+                issueIdMap.TryAdd(li.Iid, hi.Number);
                 Thread.Sleep(1000); // wait one second between create requests as per GitHub API docs here: https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
             }
 
