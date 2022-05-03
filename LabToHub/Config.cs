@@ -11,10 +11,17 @@ namespace LabToHub
         public static bool Verify()
         {
             bool success = true;
-            if (GITLAB_REPO_NAME == "YOUR_GITLAB_REPO_NAME_HERE")
+
+            if (GITLAB_FULL_NAMESPACE == "YOUR_GITLAB_FULL_NAMESPACE_HERE")
             {
                 success = false;
-                Console.Error.WriteLine($"Pleasure configure 'Config.{nameof(GITLAB_REPO_NAME)}'");
+                Console.Error.WriteLine($"Pleasure configure 'Config.{nameof(GITLAB_FULL_NAMESPACE)}'");
+            }
+
+            if (GITLAB_PROJECT_NAME == "YOUR_GITLAB_PROJECT_NAME_HERE")
+            {
+                success = false;
+                Console.Error.WriteLine($"Pleasure configure 'Config.{nameof(GITLAB_PROJECT_NAME)}'");
             }
 
             if (GITLAB_ACCESS_TOKEN == "YOUR_GITLAB_TOKEN_HERE")
@@ -46,7 +53,8 @@ namespace LabToHub
         ///////////////////////////////////////////////////
         // GitLab project to migrate from:
         ///////////////////////////////////////////////////
-        public const string GITLAB_REPO_NAME = "YOUR_GITLAB_REPO_NAME_HERE";
+        public const string GITLAB_PROJECT_NAME = "YOUR_GITLAB_PROJECT_NAME_HERE";
+        public const string GITLAB_FULL_NAMESPACE = "YOUR_GITLAB_FULL_NAMESPACE_HERE";
         public const string GITLAB_ACCESS_TOKEN = "YOUR_GITLAB_TOKEN_HERE";
         // name of the main branch in gitlab.
         // When this name appears as a target for a MR, the target will be switched to "main"
@@ -85,7 +93,8 @@ namespace LabToHub
             { "StefanHolst", "StefanHolst" },
             { "alexnlarsen", "alnlarsen" },
             { "enesozturk", "enes-ozturk" },
-            { "sebastian.vlaic", "sebastian-pop" }
+            { "sebastian.vlaic", "sebastian-pop" },
+            { "dragos", "db-ks" }
         };  
     }
 }

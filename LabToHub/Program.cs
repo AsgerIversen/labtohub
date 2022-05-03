@@ -19,7 +19,7 @@ var gitlab = new GitLabClient("http://gitlab.it.keysight.com", Config.GITLAB_ACC
 var projects = await gitlab.Projects.GetAsync();
 foreach (var project in projects)
 {
-    if (project.Name == Config.GITLAB_REPO_NAME)
+    if (project.Namespace.FullPath == Config.GITLAB_FULL_NAMESPACE && project.Name == Config.GITLAB_PROJECT_NAME)
     {
         GITLAB_REPO_URL = project.WebUrl;
         GITLAB_REPO_ID = project.Id;
@@ -30,7 +30,7 @@ foreach (var project in projects)
 
 if (GITLAB_REPO_URL == null)
 {
-    throw new Exception($"No repository named '{Config.GITLAB_REPO_NAME}' found. Is the name mispelled?\n" +
+    throw new Exception($"No repository named '{Config.GITLAB_PROJECT_NAME}' found in the namespace '{Config.GITLAB_FULL_NAMESPACE}'. Is the name mispelled?\n" +
                         $"Does your API token have the correct access?\n" +
                         $"Does the owner of the token have read access?");
 }
@@ -42,7 +42,7 @@ var github = new GitHubClient(new ProductHeaderValue("LabToHub"));
 github.Credentials = new Credentials(Config.GITHUB_ACCESS_TOKEN);
 var hubRepo = await github.Repository.Get(Config.GITHUB_REPO_OWNER, Config.GITHUB_REPO_NAME); // id = 436397521
 
-var hubIssues = await github.Issue.GetAllForRepository(hubRepo.Id, new RepositoryIssueRequest { State = ItemStateFilter.All });
+var hubIssues = (await github.Issue.GetAllForRepository(hubRepo.Id, new RepositoryIssueRequest { State = ItemStateFilter.All })).ToList();
 
 
 var hubMilestones = await github.Issue.Milestone.GetAllForRepository(hubRepo.Id);
@@ -67,11 +67,12 @@ while (!completed)
         foreach (var li in labIssues)
         {
             string migratedDescription = $"Originally filed {li.CreatedAt.ToString("MMMM dd yyyy")} by {li.Author.Name} on [GitLab]({li.WebUrl})" + Environment.NewLine + Environment.NewLine;
-            migratedDescription += TransformMarkdown(li.Description);
+            if(!string.IsNullOrEmpty(li.Description))
+                migratedDescription += TransformMarkdown(li.Description);
 
             // is this issue already in GitHub (based on description)
             var hi = hubIssues.FirstOrDefault(i => i.Body is not null && i.Body.Contains("[GitLab](" + li.WebUrl + ")"));
-            if (hi is not null)
+            if (issueIdMap.ContainsKey(li.Iid) && hi != null)
             {
                 // update issue already found
                 if (hi.Body != migratedDescription ||
@@ -129,6 +130,7 @@ while (!completed)
                 hi = await github.Issue.Create(hubRepo.Id, newi);
                 Console.WriteLine($"Created issue '{hi.Title}'");
                 issueIdMap.TryAdd(li.Iid, hi.Number);
+                hubIssues.Add(hi);
                 Thread.Sleep(1000); // wait one second between create requests as per GitHub API docs here: https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
             }
 
